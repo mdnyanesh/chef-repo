@@ -85,8 +85,3 @@ knife node run_list add <node name> 'recipe[WebSphereAS85::createAppServer]'
 
 knife node run_list add <node name> 'recipe[WebSphereAS85::healthcheck]'
 
-License and Authors
--------------------
-Rohit Gabriel, Auckland, New Zealand.
-
-Profile: https://nz.linkedin.com/in/rohit-gabriel-22a76320

@@ -52,8 +52,3 @@ Add to the node's run list
 
 knife node run_list add <node name> 'recipe[InstallationManager::default]'
 
-License and Authors
--------------------
-Rohit Gabriel, Auckland, New Zealand.
-
-Profile: https://nz.linkedin.com/in/rohit-gabriel-22a76320
