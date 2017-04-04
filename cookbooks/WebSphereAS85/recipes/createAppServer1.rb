@@ -19,10 +19,10 @@ end
 
 
 execute 'addNode' do
-  path = "#{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-appsrvname']}"
+  path = "#{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-appsrvname']}/config/cells/#{node["hostname"]}Cell/nodes/#{node["hostname"]}Node"
   path = path.strip
   not_if do FileTest.directory?(path) end
-  command "#{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-appsrvname']}/bin/addNode.sh #{node["hostname"]} 8879"
+  command "#{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-appsrvname']}/bin/addNode.sh #{node["fqdn"]} 8879"
   cwd "#{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-appsrvname']}/bin"
   action :run
 end

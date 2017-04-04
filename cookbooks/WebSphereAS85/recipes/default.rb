@@ -20,6 +20,9 @@
 
 
 wasbinary_dir = "#{Chef::Config[:file_cache_path]}/WASbinaries"
+binary_path_1 = "#{wasbinary_dir}/was.repo.8550.ndtrial_part1.zip"
+binary_path_2 = "#{wasbinary_dir}/was.repo.8550.ndtrial_part2.zip"
+binary_path_3 = "#{wasbinary_dir}/was.repo.8550.ndtrial_part3.zip"
 binaries = [ "#{node['WebSphereAS85']['package-name-1']}", "#{node['WebSphereAS85']['package-name-2']}", "#{node['WebSphereAS85']['package-name-3']}"]
 checksums = [ "#{node['WebSphereAS85']['package1-sha256sum']}", "#{node['WebSphereAS85']['package2-sha256sum']}", "#{node['WebSphereAS85']['package3-sha256sum']}"]
 
@@ -53,32 +56,43 @@ end
 count = 0
 
 binaries.each { | package_name |
-	 execute 'copy-BPM' do
+ execute "copy-WAS-package #{package_name}" do
     action :run
-      command "scp #{node['WebSphereAS85']['ftploginuser']}@#{node['WebSphereAS85']['binaryhost']}:#{node['WebSphereAS85']['ftppath']}/#{package_name} #{wasbinary_dir}"
-    cwd bpmbinary_dir
-  end
-  ruby_block "Validate Package Checksum" do
+    command "scp #{node['WebSphereAS85']['ftploginuser']}@#{node['WebSphereAS85']['binaryhost']}:#{node['WebSphereAS85']['ftppath']}/#{package_name} #{wasbinary_dir}"
+    cwd wasbinary_dir
+    not_if do
+       File.exist?("#{binary_path_1}") && File.exist?("#{binary_path_2}") && File.exist?("#{binary_path_3}")
+    end
+ end
+ 
+ruby_block "Validate Package Checksum #{package_name}" do
     action :run
-    block do
+   block do
       require 'digest'
       checksum = Digest::SHA256.file("#{wasbinary_dir}/#{package_name}").hexdigest
       if checksum != checksums[count]
         raise "#{package_name} #{count} Downloaded package Checksum #{checksum} does not match known checksum #{checksums[count]}"
-      #else
-        #count += 1
       end
       count += 1
     end
-  end
+ end
 
-	execute 'extract-WAS' do
-		action :run
-      command "unzip -o #{package_name}"
-	  	cwd wasbinary_dir
-	end
-  #raise "count after extract = #{count}"
+ execute "extract-WAS-package #{package_name}" do
+     action :run
+     command "unzip -o #{package_name}"
+     cwd wasbinary_dir
+     disk1_path = "#{wasbinary_dir}/disk1"
+     disk1_path = disk1_path.strip
+     disk2_path = "#{wasbinary_dir}/disk2"
+     disk2_path = disk2_path.strip
+     disk3_path = "#{wasbinary_dir}/disk3"
+     disk3_path = disk3_path.strip
+     not_if do     
+       FileTest.directory?(disk1_path) && FileTest.directory?(disk2_path) && FileTest.directory?(disk3_path)
+    end
+  end
 }
+
 
 template "#{wasbinary_dir}/#{node['WebSphereAS85']['was-responsefile']}" do
   source 'WAS-responsefile.erb'
@@ -97,12 +111,12 @@ template "#{wasbinary_dir}/#{node['WebSphereAS85']['was-responsefile']}" do
 end
 
 execute 'install-WAS85' do
+  path = "#{node['WebSphereAS85']['was85-installpath']}/bin"
+  path = path.strip
+  not_if do FileTest.directory?(path) end 
   command "#{node['WebSphereAS85']['imcl-path']} -acceptLicense -showProgress input '#{wasbinary_dir}/#{node['WebSphereAS85']['was-responsefile']}' -dataLocation '#{node['WebSphereAS85']['imagentdata_install_dir']}' -log '#{wasbinary_dir}/WAS85NDinstall.log'"
   cwd wasbinary_dir
   action :run
 end
 
-directory wasbinary_dir do
-  action :delete
-  recursive true
-end
+

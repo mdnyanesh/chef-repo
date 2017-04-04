@@ -15,7 +15,7 @@ execute 'createDmgr' do
   path = path.strip
   not_if do FileTest.directory?(path) end
   environment 'LANG' => "en_US.UTF-8", 'LANGUAGE' => "en_US.UTF-8", 'LC_ALL' => "en_US.UTF-8"
-  command "#{node['WebSphereAS85']['was85-binpath']}/manageprofiles.sh -create -profileName #{node['WebSphereAS85']['was85-dmgrname']} -profilePath #{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-dmgrname']} -templatePath #{node['WebSphereAS85']['was85-installpath']}/profileTemplates/management -nodeName #{node['WebSphereAS85']['was85-dmgrname']}Node -cellName #{node["hostname"]}Cell -hostname #node{hostname} -adminUserName wasuser -adminPassword wasuser -enableAdminSecurity true"
+  command "#{node['WebSphereAS85']['was85-binpath']}/manageprofiles.sh -create -profileName #{node['WebSphereAS85']['was85-dmgrname']} -profilePath #{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphereAS85']['was85-dmgrname']} -templatePath #{node['WebSphereAS85']['was85-installpath']}/profileTemplates/management -nodeName #{node['WebSphereAS85']['was85-dmgrname']}Node -cellName #{node["hostname"]}Cell -hostname #{node["hostname"]} -adminUserName wasuser -adminPassword wasuser -enableAdminSecurity true"
   cwd "#{node['WebSphereAS85']['was85-binpath']}"
   action :run
 end
@@ -25,12 +25,6 @@ template "#{node['WebSphereAS85']['was85-installpath']}/profiles/#{node['WebSphe
   owner 'root'
   group 'root'
   mode '0644'
-end
-
-execute 'hosts' do
-  command "echo '127.0.0.1       #{node["hostname"]}  localhost' >> /etc/hosts  "
-  cwd "/etc"
-  action :run
 end
 
 execute 'startDmgr' do
